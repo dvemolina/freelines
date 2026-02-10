@@ -6,13 +6,36 @@ import { saveTrackingSession, clearTrackingSession, loadTrackingSession } from '
 import { api } from '$lib/api/client';
 
 const BackgroundGeolocation =
-	registerPlugin<BackgroundGeolocationPlugin>('BackgroundGeolocation');
+	globalThis.__freelinesBgGeo ??
+	(globalThis.__freelinesBgGeo =
+		registerPlugin<BackgroundGeolocationPlugin>('BackgroundGeolocation'));
 
 const MIN_ACCURACY_M = 50;
 const MIN_DISTANCE_M = 5;
 const SAVE_EVERY_N_POINTS = 10;
 
 type PointCallback = (point: GPSPoint) => void;
+
+function createSessionId(): string {
+	if (globalThis.crypto?.randomUUID) {
+		return crypto.randomUUID();
+	}
+
+	if (globalThis.crypto?.getRandomValues) {
+		const bytes = new Uint8Array(16);
+		crypto.getRandomValues(bytes);
+		// RFC 4122 v4
+		bytes[6] = (bytes[6] & 0x0f) | 0x40;
+		bytes[8] = (bytes[8] & 0x3f) | 0x80;
+
+		const hex = Array.from(bytes, (b) => b.toString(16).padStart(2, '0'));
+		return `${hex.slice(0, 4).join('')}-${hex.slice(4, 6).join('')}-${hex
+			.slice(6, 8)
+			.join('')}-${hex.slice(8, 10).join('')}-${hex.slice(10, 16).join('')}`;
+	}
+
+	return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+}
 
 function createTracker() {
 	let points = $state<GPSPoint[]>([]);
@@ -163,7 +186,7 @@ function createTracker() {
 	async function start(onPoint?: PointCallback): Promise<void> {
 		if (isTracking) return;
 
-		sessionId = crypto.randomUUID();
+		sessionId = createSessionId();
 		startedAt = Date.now();
 		points = [];
 		unsavedCount = 0;
