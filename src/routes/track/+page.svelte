@@ -1,34 +1,22 @@
 <script lang="ts">
 	import { tracker } from '$lib/services/gps-tracker.svelte';
-	import { msToKmh } from '$lib/utils/geo';
 	import { onMount } from 'svelte';
 
-	let permissionGranted = $state(false);
 	let permissionError = $state('');
 	let recoveredSession = $state(false);
+	let saveState = $state<'idle' | 'saving' | 'saved' | 'error'>('idle');
+	let saveError = $state('');
 
 	onMount(async () => {
-		// Check for a crashed/interrupted session to recover
 		const saved = await tracker.restoreSession();
 		if (saved && saved.points.length > 0) {
 			recoveredSession = true;
 		}
 	});
 
-	async function handleRequestPermission() {
-		permissionError = '';
-		try {
-			permissionGranted = await tracker.requestPermissions();
-			if (!permissionGranted) {
-				permissionError = 'Location permission denied. Please enable it in your device settings.';
-			}
-		} catch (err) {
-			permissionError = err instanceof Error ? err.message : 'Failed to request permissions';
-		}
-	}
-
 	async function handleStart() {
 		permissionError = '';
+		saveState = 'idle';
 		try {
 			await tracker.start();
 		} catch (err) {
@@ -37,15 +25,39 @@
 	}
 
 	async function handleStop() {
-		const session = await tracker.stop();
-		console.log('[Track] Session completed:', session.id, `${session.points.length} points`);
-		// TODO Phase 2: save session to server
+		await tracker.stop();
 	}
 
-	function handleDiscardRecovery() {
-		recoveredSession = false;
-		// Tracker already loaded the points; just clear the flag
+	async function handleSave() {
+		saveState = 'saving';
+		saveError = '';
+		try {
+			await tracker.saveRun();
+			saveState = 'saved';
+		} catch (err) {
+			saveError = err instanceof Error ? err.message : 'Failed to save run';
+			saveState = 'error';
+		}
 	}
+
+	function handleDiscard() {
+		saveState = 'idle';
+		recoveredSession = false;
+	}
+
+	function handleRequestPermission() {
+		permissionError = '';
+		tracker.requestPermissions().then((granted) => {
+			if (!granted) {
+				permissionError = 'Location permission denied. Please enable it in your device settings.';
+			}
+		});
+	}
+
+	// Whether we have a completed (unsaved) session to show
+	const hasUnsavedSession = $derived(
+		!tracker.isTracking && tracker.points.length > 0 && saveState !== 'saved'
+	);
 
 	function formatDuration(ms: number): string {
 		const totalSec = Math.floor(ms / 1000);
@@ -81,11 +93,10 @@
 	</header>
 
 	<!-- Recovered session banner -->
-	{#if recoveredSession && !tracker.isTracking}
+	{#if recoveredSession && !tracker.isTracking && saveState === 'idle'}
 		<div class="mx-4 mb-4 rounded-lg bg-blue-900/50 p-3">
 			<p class="text-sm text-blue-200">
-				Found an interrupted session with {tracker.points.length} points. You can resume or discard
-				it.
+				Found an interrupted session with {tracker.points.length} points.
 			</p>
 			<div class="mt-2 flex gap-2">
 				<button
@@ -95,7 +106,7 @@
 					Resume tracking
 				</button>
 				<button
-					onclick={handleDiscardRecovery}
+					onclick={handleDiscard}
 					class="rounded bg-gray-700 px-3 py-1 text-sm font-medium text-gray-300"
 				>
 					Discard
@@ -125,6 +136,24 @@
 			<p class="text-sm text-yellow-200">
 				Running in web mode. Background tracking is not available — keep the browser tab open.
 			</p>
+		</div>
+	{/if}
+
+	<!-- Saved success -->
+	{#if saveState === 'saved'}
+		<div class="mx-4 mb-4 rounded-lg bg-green-900/50 p-3">
+			<p class="text-sm text-green-200">Run saved successfully!</p>
+			<div class="mt-2 flex gap-2">
+				<a href="/runs" class="rounded bg-green-700 px-3 py-1 text-sm font-medium text-white">
+					View runs
+				</a>
+				<button
+					onclick={() => (saveState = 'idle')}
+					class="rounded bg-gray-700 px-3 py-1 text-sm font-medium text-gray-300"
+				>
+					New run
+				</button>
+			</div>
 		</div>
 	{/if}
 
@@ -184,14 +213,34 @@
 	<!-- Spacer -->
 	<div class="flex-1"></div>
 
-	<!-- Start / Stop button -->
-	<div class="p-6">
+	<!-- Action buttons -->
+	<div class="p-6 space-y-3">
+		{#if saveState === 'error'}
+			<div class="rounded-lg bg-red-900/50 p-3 text-center">
+				<p class="text-sm text-red-200">{saveError}</p>
+			</div>
+		{/if}
+
 		{#if tracker.isTracking}
 			<button
 				onclick={handleStop}
 				class="w-full rounded-2xl bg-red-600 py-4 text-lg font-bold text-white active:bg-red-700"
 			>
 				Stop Tracking
+			</button>
+		{:else if hasUnsavedSession}
+			<button
+				onclick={handleSave}
+				disabled={saveState === 'saving'}
+				class="w-full rounded-2xl bg-blue-600 py-4 text-lg font-bold text-white active:bg-blue-700 disabled:opacity-50"
+			>
+				{saveState === 'saving' ? 'Saving...' : 'Save Run'}
+			</button>
+			<button
+				onclick={handleDiscard}
+				class="w-full rounded-2xl bg-gray-800 py-3 text-sm font-medium text-gray-400 active:bg-gray-700"
+			>
+				Discard
 			</button>
 		{:else}
 			<button
