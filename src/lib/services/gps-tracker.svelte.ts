@@ -290,7 +290,14 @@ function createTracker() {
 		start,
 		stop,
 		restoreSession,
-		saveRun
+		saveRun,
+		reset() {
+			points = [];
+			startedAt = 0;
+			sessionId = '';
+			unsavedCount = 0;
+			clearTrackingSession();
+		}
 	};
 }
 

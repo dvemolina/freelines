@@ -41,6 +41,7 @@
 	}
 
 	function handleDiscard() {
+		tracker.reset();
 		saveState = 'idle';
 		recoveredSession = false;
 	}
