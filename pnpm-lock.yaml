@@ -10,19 +10,19 @@ importers:
     dependencies:
       '@capacitor-community/background-geolocation':
         specifier: ^1.2.26
-        version: 1.2.26(@capacitor/core@8.0.2)
+        version: 1.2.26(@capacitor/core@7.5.0)
       '@capacitor/cli':
-        specifier: ^8.0.2
-        version: 8.0.2
+        specifier: ^7.5.0
+        version: 7.5.0
       '@capacitor/core':
-        specifier: ^8.0.2
-        version: 8.0.2
+        specifier: ^7.5.0
+        version: 7.5.0
       '@capacitor/geolocation':
-        specifier: ^8.0.0
-        version: 8.0.0(@capacitor/core@8.0.2)
+        specifier: ^7.1.8
+        version: 7.1.8(@capacitor/core@7.5.0)
       '@capacitor/ios':
-        specifier: ^8.1.0
-        version: 8.1.0(@capacitor/core@8.0.2)
+        specifier: ^7.5.0
+        version: 7.5.0(@capacitor/core@7.5.0)
       idb-keyval:
         specifier: ^6.2.2
         version: 6.2.2
@@ -149,23 +149,23 @@ packages:
     peerDependencies:
       '@capacitor/core': '>=3.0.0'
 
-  '@capacitor/cli@8.0.2':
-    resolution: {integrity: sha512-/8qLYxhytMyUKTHK8i6YU+DMD3AuFiQgSuJCyMltcg9MN3W9En7zqQZSo/WN4eC7qif/oyZACzm7OkAZKani7g==}
-    engines: {node: '>=22.0.0'}
+  '@capacitor/cli@7.5.0':
+    resolution: {integrity: sha512-mlohsvLZjWrO5eAVTn1+dABNQwQawcphVp6NQVJZ3I4x2BAoNmJj53QflX7PYGUipL9gF9EM9Yiku3m1McxFZg==}
+    engines: {node: '>=20.0.0'}
     hasBin: true
 
-  '@capacitor/core@8.0.2':
-    resolution: {integrity: sha512-EXZfxkL6GFJS2cb7TIBR7RiHA5iz6ufDcl1VmUpI2pga3lJ5Ck2+iqbx7N+osL3XYem9ad4XCidJEMm64DX6UQ==}
+  '@capacitor/core@7.5.0':
+    resolution: {integrity: sha512-4Y4trISe2Bp3lwsoGFoQIvgX4hiZO8S1Slmbz6oFaMxAuEc4noipQGCQx974PF4glwVVe/8+H3P9iEmCXtrUgA==}
 
-  '@capacitor/geolocation@8.0.0':
-    resolution: {integrity: sha512-ci6gOWd5/uruC3bRTxI3xFd9g82WnnJbdQxOH3oZOATNuedlaAw5c5/zXEIMYfRB7t2x1v8/N9gXkND6/nOmVQ==}
+  '@capacitor/geolocation@7.1.8':
+    resolution: {integrity: sha512-x/rJieD2N2zlGvXFRD3ru4ArJWTwXAIYmyhfo5zg4F1DKGos7mCCOvIOSVMdfQmt14SCsmJeO9Qe8EtDGNGCrw==}
     peerDependencies:
-      '@capacitor/core': '>=8.0.0'
+      '@capacitor/core': '>=7.0.0'
 
-  '@capacitor/ios@8.1.0':
-    resolution: {integrity: sha512-wPaQ8ayL0UY+SxydZbrmfzPs8TryZVEB6hrL/XBnXxQtb6rpEmIy/3GIltPwM+/T4m/IuaSDZOToWK65ruC00g==}
+  '@capacitor/ios@7.5.0':
+    resolution: {integrity: sha512-HlEWLjmPMSyjD8pM2FSTYF7a7aoYDdrlUoA3Ybm8OnmOaby3R7L8jpzJr96igh/i2SpsHvDI7v3sO2FhSNKCKA==}
     peerDependencies:
-      '@capacitor/core': ^8.1.0
+      '@capacitor/core': ^7.5.0
 
   '@capacitor/synapse@1.0.4':
     resolution: {integrity: sha512-/C1FUo8/OkKuAT4nCIu/34ny9siNHr9qtFezu4kxm6GY1wNFxrCFWjfYx5C1tUhVGz3fxBABegupkpjXvjCHrw==}
@@ -2329,6 +2329,7 @@ packages:
   tar@7.5.7:
     resolution: {integrity: sha512-fov56fJiRuThVFXD6o6/Q354S7pnWMJIVlDBYijsTNx6jKSE4pvrDTs6lUnmGvNyfJwFQQwWy3owKz1ucIhveQ==}
     engines: {node: '>=18'}
+    deprecated: Old versions of tar are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
 
   through2@4.0.2:
     resolution: {integrity: sha512-iOqSav00cVxEEICeD7TjLB1sueEL+81Wpzp2bY17uZjZN0pWZPuo4suZ/61VujxmqSGFfgOcNuTZ85QJwNZQpw==}
@@ -2521,11 +2522,11 @@ snapshots:
 
   '@better-fetch/fetch@1.1.21': {}
 
-  '@capacitor-community/background-geolocation@1.2.26(@capacitor/core@8.0.2)':
+  '@capacitor-community/background-geolocation@1.2.26(@capacitor/core@7.5.0)':
     dependencies:
-      '@capacitor/core': 8.0.2
+      '@capacitor/core': 7.5.0
 
-  '@capacitor/cli@8.0.2':
+  '@capacitor/cli@7.5.0':
     dependencies:
       '@ionic/cli-framework-output': 2.2.8
       '@ionic/utils-subprocess': 3.0.1
@@ -2547,18 +2548,18 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@capacitor/core@8.0.2':
+  '@capacitor/core@7.5.0':
     dependencies:
       tslib: 2.8.1
 
-  '@capacitor/geolocation@8.0.0(@capacitor/core@8.0.2)':
+  '@capacitor/geolocation@7.1.8(@capacitor/core@7.5.0)':
     dependencies:
-      '@capacitor/core': 8.0.2
+      '@capacitor/core': 7.5.0
       '@capacitor/synapse': 1.0.4
 
-  '@capacitor/ios@8.1.0(@capacitor/core@8.0.2)':
+  '@capacitor/ios@7.5.0(@capacitor/core@7.5.0)':
     dependencies:
-      '@capacitor/core': 8.0.2
+      '@capacitor/core': 7.5.0
 
   '@capacitor/synapse@1.0.4': {}
 

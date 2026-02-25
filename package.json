@@ -58,10 +58,10 @@
 	},
 	"dependencies": {
 		"@capacitor-community/background-geolocation": "^1.2.26",
-		"@capacitor/cli": "^8.0.2",
-		"@capacitor/core": "^8.0.2",
-		"@capacitor/geolocation": "^8.0.0",
-		"@capacitor/ios": "^8.1.0",
+		"@capacitor/cli": "^7.5.0",
+		"@capacitor/core": "^7.5.0",
+		"@capacitor/geolocation": "^7.1.8",
+		"@capacitor/ios": "^7.5.0",
 		"idb-keyval": "^6.2.2",
 		"maplibre-gl": "^5.18.0",
 		"postgres": "^3.4.8"
