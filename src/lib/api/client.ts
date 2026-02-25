@@ -43,5 +43,8 @@ export const api = {
 	put: <T>(endpoint: string, data: unknown) =>
 		apiClient<T>(endpoint, { method: 'PUT', body: JSON.stringify(data) }),
 
+	patch: <T>(endpoint: string, data: unknown) =>
+		apiClient<T>(endpoint, { method: 'PATCH', body: JSON.stringify(data) }),
+
 	delete: <T>(endpoint: string) => apiClient<T>(endpoint, { method: 'DELETE' })
 };

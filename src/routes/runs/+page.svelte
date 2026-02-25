@@ -43,10 +43,8 @@
 </svelte:head>
 
 <div class="flex min-h-screen flex-col bg-gray-950 text-white">
-	<header class="flex items-center justify-between px-4 py-3">
-		<a href="/" class="text-sm text-gray-400">Back</a>
+	<header class="flex items-center justify-center px-4 py-3">
 		<h1 class="text-lg font-semibold">My Runs</h1>
-		<a href="/track" class="text-sm text-green-400">Track</a>
 	</header>
 
 	{#if loading}
@@ -70,14 +68,24 @@
 	{:else}
 		<div class="flex flex-col gap-3 px-4 pb-6">
 			{#each runs as run (run.id)}
-				<div class="rounded-xl bg-gray-900 p-4">
+				<a href="/runs/{run.id}" class="block rounded-xl bg-gray-900 p-4 active:bg-gray-800">
+					{#if run.lineName}
+						<p class="mb-1 text-sm font-semibold text-green-400">{run.lineName}</p>
+					{/if}
 					<div class="mb-2 flex items-center justify-between">
 						<span class="text-sm text-gray-400">{formatDate(run.recordedAt)}</span>
-						{#if run.conditions}
-							<span class="rounded-full bg-gray-800 px-2 py-0.5 text-xs text-gray-300">
-								{run.conditions}
-							</span>
-						{/if}
+						<div class="flex gap-1.5">
+							{#if run.matchConfidence}
+								<span class="rounded-full bg-green-900/50 px-2 py-0.5 text-xs text-green-300">
+									{Math.round(Number(run.matchConfidence) * 100)}%
+								</span>
+							{/if}
+							{#if run.conditions}
+								<span class="rounded-full bg-gray-800 px-2 py-0.5 text-xs text-gray-300">
+									{run.conditions}
+								</span>
+							{/if}
+						</div>
 					</div>
 					<div class="grid grid-cols-3 gap-3 text-center">
 						<div>
@@ -101,7 +109,7 @@
 						<span>Max {run.maxSpeedKmh} km/h</span>
 						<span>Avg {run.avgSpeedKmh} km/h</span>
 					</div>
-				</div>
+				</a>
 			{/each}
 		</div>
 	{/if}

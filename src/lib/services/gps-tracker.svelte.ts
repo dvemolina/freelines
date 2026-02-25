@@ -1,14 +1,23 @@
 import { Capacitor, registerPlugin } from '@capacitor/core';
-import type { BackgroundGeolocationPlugin } from '@capacitor-community/background-geolocation';
-import type { GPSPoint, TrackingStats, TrackingSession, Run } from '$lib/types';
+import type {
+	BackgroundGeolocationPlugin,
+	Location as BgLocation,
+	CallbackError as BgCallbackError
+} from '@capacitor-community/background-geolocation';
+import type { GPSPoint, TrackingStats, TrackingSession, Run, LineMatchResult } from '$lib/types';
 import { computeStats, haversineDistance, msToKmh } from '$lib/utils/geo';
-import { saveTrackingSession, clearTrackingSession, loadTrackingSession } from './storage';
+import {
+	saveTrackingSession,
+	clearTrackingSession,
+	loadTrackingSession,
+	addToRunQueue,
+	getRunQueue,
+	removeFromRunQueue
+} from './storage';
 import { api } from '$lib/api/client';
 
 const BackgroundGeolocation =
-	globalThis.__freelinesBgGeo ??
-	(globalThis.__freelinesBgGeo =
-		registerPlugin<BackgroundGeolocationPlugin>('BackgroundGeolocation'));
+	registerPlugin<BackgroundGeolocationPlugin>('BackgroundGeolocation');
 
 const MIN_ACCURACY_M = 50;
 const MIN_DISTANCE_M = 5;
@@ -17,13 +26,13 @@ const SAVE_EVERY_N_POINTS = 10;
 type PointCallback = (point: GPSPoint) => void;
 
 function createSessionId(): string {
-	if (globalThis.crypto?.randomUUID) {
-		return crypto.randomUUID();
+	if (typeof globalThis.crypto?.randomUUID === 'function') {
+		return globalThis.crypto.randomUUID();
 	}
 
-	if (globalThis.crypto?.getRandomValues) {
+	if (typeof globalThis.crypto?.getRandomValues === 'function') {
 		const bytes = new Uint8Array(16);
-		crypto.getRandomValues(bytes);
+		globalThis.crypto.getRandomValues(bytes);
 		// RFC 4122 v4
 		bytes[6] = (bytes[6] & 0x0f) | 0x40;
 		bytes[8] = (bytes[8] & 0x3f) | 0x80;
@@ -104,7 +113,7 @@ function createTracker() {
 				stale: false,
 				distanceFilter: MIN_DISTANCE_M
 			},
-			(location, error) => {
+				(location?: BgLocation, error?: BgCallbackError) => {
 				if (error) {
 					console.error('[GPS]', error.message);
 					return;
@@ -241,19 +250,15 @@ function createTracker() {
 		return saved;
 	}
 
-	async function saveRun(): Promise<{ run: Run }> {
-		if (points.length < 10) {
-			throw new Error('Not enough GPS points recorded');
-		}
-
+	function buildRunPayload() {
 		const currentStats = computeStats(points, startedAt);
 		const first = points[0];
 		const last = points[points.length - 1];
 		const durationSec = currentStats.duration / 1000;
 		const avgSpeed = durationSec > 0 ? msToKmh(currentStats.distance / durationSec) : 0;
 
-		const result = await api.post<{ run: Run }>('/runs', {
-			points,
+		return {
+			points: [...points],
 			startedAt: new Date(first.timestamp).toISOString(),
 			endedAt: new Date(last.timestamp).toISOString(),
 			durationSeconds: Math.round(durationSec),
@@ -267,9 +272,64 @@ function createTracker() {
 			endLatitude: last.latitude,
 			endLongitude: last.longitude,
 			endElevation: last.elevation
-		});
+		};
+	}
 
-		return result;
+	async function saveRun(): Promise<{ run: Run; match: LineMatchResult | null; queued?: boolean }> {
+		if (points.length < 10) {
+			throw new Error('Not enough GPS points recorded');
+		}
+
+		const payload = buildRunPayload();
+
+		try {
+			const result = await api.post<{ run: Run; match: LineMatchResult | null }>('/runs', payload);
+			return result;
+		} catch (err) {
+			// Network error — queue for later
+			const isNetworkError =
+				err instanceof TypeError ||
+				(err instanceof Error && err.message.includes('fetch'));
+
+			if (isNetworkError) {
+				await addToRunQueue({
+					id: createSessionId(),
+					queuedAt: Date.now(),
+					payload
+				});
+				return {
+					run: { id: 'queued', ...payload } as unknown as Run,
+					match: null,
+					queued: true
+				};
+			}
+			throw err;
+		}
+	}
+
+	async function syncQueue(): Promise<{ synced: number; failed: number }> {
+		const queue = await getRunQueue();
+		if (queue.length === 0) return { synced: 0, failed: 0 };
+
+		let synced = 0;
+		let failed = 0;
+
+		for (const item of queue) {
+			try {
+				await api.post('/runs', item.payload);
+				await removeFromRunQueue(item.id);
+				synced++;
+			} catch {
+				failed++;
+			}
+		}
+
+		return { synced, failed };
+	}
+
+	async function getQueueCount(): Promise<number> {
+		const queue = await getRunQueue();
+		return queue.length;
 	}
 
 	return {
@@ -291,6 +351,8 @@ function createTracker() {
 		stop,
 		restoreSession,
 		saveRun,
+		syncQueue,
+		getQueueCount,
 		reset() {
 			points = [];
 			startedAt = 0;

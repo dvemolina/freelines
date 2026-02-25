@@ -29,6 +29,7 @@ export interface Run {
 	id: string;
 	userId: string;
 	lineId?: string;
+	lineName?: string;
 	startedAt: string;
 	endedAt: string;
 	recordedAt: string;
@@ -44,9 +45,17 @@ export interface Run {
 	endLongitude: number;
 	endElevation?: number;
 	matchConfidence?: number;
+	pathDeviation?: number;
 	notes?: string;
 	conditions?: string;
 	createdAt: string;
+}
+
+export interface LineMatchResult {
+	lineId: string;
+	lineName: string;
+	confidence: number;
+	pathDeviation: number;
 }
 
 export interface Line {
@@ -57,11 +66,11 @@ export interface Line {
 	resort?: string;
 	area?: string;
 	country: string;
-	startLatitude: number;
-	startLongitude: number;
+	startLat: string;
+	startLng: string;
 	startElevation: number;
-	endLatitude: number;
-	endLongitude: number;
+	endLat: string;
+	endLng: string;
 	endElevation: number;
 	verticalDrop: number;
 	distance: number;

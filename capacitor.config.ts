@@ -4,13 +4,14 @@ const config: CapacitorConfig = {
 	appId: 'com.freelines.app',
 	appName: 'Freelines',
 	webDir: 'build',
-	server: {
-		androidScheme: 'https',
-		iosScheme: 'capacitor'
-		// For development: point to your dev server
-		// url: 'http://YOUR_LOCAL_IP:5173',
-		// cleartext: true
-	},
+	// Bundled/native mode (no server.url): app loads local built assets on device.
+	// If you want live-reload dev-server mode later, uncomment and set your laptop IP:
+	// server: {
+	// 	androidScheme: 'https',
+	// 	iosScheme: 'capacitor',
+	// 	url: 'http://172.20.10.4:5173',
+	// 	cleartext: true
+	// },
 	plugins: {
 		CapacitorHttp: {
 			enabled: true
