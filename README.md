@@ -1,42 +1,98 @@
-# sv
+# Freelines
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+Freelines is a freeride GPS tracker and logbook experiment for skiers who want to record lines, compare them with known routes and keep a personal history of runs.
 
-## Creating a project
+The project is still in active prototype/work-in-progress state. It is not a safety tool and does not replace mountain judgment, avalanche education, local knowledge or professional guiding.
 
-If you're seeing this, you've probably already done this step. Congrats!
+## What it does
 
-```sh
-# create a new project
-npx sv create my-app
+- Tracks a ski/freeride run from the browser or a Capacitor mobile shell.
+- Uses background geolocation on native builds and browser geolocation on web.
+- Saves tracking progress locally so a session can recover from app/browser interruptions.
+- Stores runs, run points and known freeride lines in PostgreSQL through Drizzle.
+- Matches recorded runs against approved known lines using start/end proximity and vertical-drop similarity.
+- Includes public line pages, run history, profile routes and admin routes for line management.
+
+## Stack
+
+- SvelteKit + Svelte 5
+- TypeScript
+- Tailwind CSS
+- Capacitor + background geolocation
+- MapLibre GL
+- PostgreSQL + Drizzle ORM
+- Better Auth
+- Vite / Svelte check / ESLint / Prettier
+
+## Main domain model
+
+The database currently centers on three records:
+
+- `lines`: known freeride lines with location, start/end points, elevation, difficulty, exposure and moderation status.
+- `runs`: recorded user runs with timing, distance, vertical drop, speed, notes, conditions and optional matched line.
+- `run_points`: ordered GPS points attached to a run.
+
+The matching service currently scores candidate lines by:
+
+- start-point proximity;
+- end-point proximity;
+- vertical-drop similarity.
+
+It is intentionally simple for now. A real production version would need better path similarity, map editing, moderation, privacy controls and stronger mountain-safety boundaries.
+
+## Local setup
+
+Install dependencies:
+
+```bash
+pnpm install
 ```
 
-To recreate this project with the same configuration:
+Copy environment variables:
 
-```sh
-# recreate this project
-pnpm dlx sv create --template minimal --types ts --add prettier eslint tailwindcss="plugins:typography,forms" sveltekit-adapter="adapter:auto" devtools-json drizzle="database:postgresql+postgresql:postgres.js+docker:yes" better-auth="demo:password" mcp="ide:claude-code,vscode,other+setup:local" --install pnpm ./
+```bash
+cp .env.example .env
 ```
 
-## Developing
+Start the database:
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
-
-```sh
-npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
+```bash
+pnpm db:start
 ```
 
-## Building
+Push or migrate the schema:
 
-To create a production version of your app:
-
-```sh
-npm run build
+```bash
+pnpm db:push
+# or
+pnpm db:migrate
 ```
 
-You can preview the production build with `npm run preview`.
+Seed line/run data if needed:
 
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+```bash
+pnpm db:seed
+pnpm db:seed:runs
+```
+
+Run the app:
+
+```bash
+pnpm dev
+```
+
+## Useful commands
+
+```bash
+pnpm check
+pnpm lint
+pnpm build
+pnpm build:mobile
+pnpm cap:ios
+pnpm cap:android
+pnpm db:studio
+```
+
+## Current status
+
+Freelines is a personal product/technical experiment, not a polished public service yet. The interesting parts are the GPS tracking workflow, offline/local session persistence, line/run data model, map-oriented UI and the first pass at route matching.
